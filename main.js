@@ -1,81 +1,86 @@
-// Get references to our HTML elements
-const loader = document.getElementById('loader');
-const calculator = document.getElementById('calculator');
-const predictButton = document.getElementById('predict-button');
-const resultDiv = document.getElementById('result');
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI House Price Predictor</title>
+    <!-- We are linking to our new, beautiful stylesheet. -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
 
-async function main() {
-    // 1. Load the Pyodide engine and Python packages
-    let pyodide = await loadPyodide();
-    await pyodide.loadPackage(["numpy", "pandas", "scikit-learn", "joblib"]);
-    
-    // 2. Fetch the saved model files from our GitHub Pages repository
-    let modelPromise = pyodide.runPythonAsync(`
-        from pyodide.http import pyfetch
-        import joblib
-        import io
+    <div class="container">
+        <header>
+            <h1>AI House Price Predictor</h1>
+            <p>Describe a property below, and our trained AI will estimate its market value based on millions of simulated data points.</p>
+        </header>
 
-        # Fetch model file
-        response = await pyfetch("trained_housing_model_final.joblib")
-        model_bytes = await response.bytes()
-        model = joblib.load(io.BytesIO(model_bytes))
+        <!-- This message will show only while the AI model is loading in the background. -->
+        <div id="loader">
+            <p>🚀 Initializing AI Brain... this may take a moment on your first visit.</p>
+        </div>
 
-        # Fetch columns file
-        response_cols = await pyfetch("model_columns_final.joblib")
-        cols_bytes = await response_cols.bytes()
-        model_columns = joblib.load(io.BytesIO(cols_bytes))
-        
-        # Return both the model and the columns
-        (model, model_columns)
-    `);
-    
-    // Wait for the model and columns to be fully loaded
-    const [model, model_columns] = await modelPromise;
-    console.log("AI Model and columns loaded successfully!");
-
-    // Hide the loader and show the calculator form
-    loader.style.display = 'none';
-    calculator.style.display = 'block';
-
-    // 3. Add an event listener to the predict button
-    predictButton.addEventListener('click', async () => {
-        // Get all the values from the form inputs
-        const inputs = {
-            SquareFootage: parseInt(document.getElementById('sqft').value),
-            Bedrooms: parseInt(document.getElementById('bedrooms').value),
-            HouseAge: parseInt(document.getElementById('age').value),
-            PropertyCondition: parseInt(document.getElementById('condition').value),
-            YearSold: parseInt(document.getElementById('year').value),
-            InterestRate: parseFloat(document.getElementById('interest').value),
-            Region: document.getElementById('region').value,
-            SubType: document.getElementById('subtype').value,
-            ArchitecturalStyle: document.getElementById('style').value,
-            HasGarage: !!parseInt(document.querySelector('input[name="garage"]:checked').value),
-            HasPool: !!parseInt(document.querySelector('input[name="pool"]:checked').value)
-        };
-
-        // Pass the user inputs to a Python function to make the prediction
-        pyodide.globals.set("input_data_js", inputs);
-        let predicted_price = await pyodide.runPythonAsync(`
-            import pandas as pd
+        <!-- The main calculator form, hidden until the AI is ready. -->
+        <main id="calculator" style="display:none;">
             
-            # Get the input data from JavaScript
-            input_dict = input_data_js.to_py()
-            input_df = pd.DataFrame([input_dict])
-            
-            # Preprocess the data exactly like we did in training
-            input_processed = pd.get_dummies(input_df)
-            final_input = input_processed.reindex(columns=model_columns, fill_value=0)
-            
-            # Make the prediction!
-            prediction = model.predict(final_input)[0]
-            prediction
-        `);
+            <label for="sqft">Square Footage:</label>
+            <input type="number" id="sqft" value="2500">
 
-        // Display the result on the webpage
-        resultDiv.innerText = `AI Predicted Price: $${predicted_price.toLocaleString('en-US', {maximumFractionDigits: 0})}`;
-    });
-}
+            <label for="bedrooms">Bedrooms:</label>
+            <input type="number" id="bedrooms" value="4">
+            
+            <label for="age">House Age (years):</label>
+            <input type="number" id="age" value="15">
+            
+            <label for="condition">Property Condition (1-10):</label>
+            <input type="number" id="condition" value="8" min="1" max="10">
+            
+            <label for="year">Year Sold:</label>
+            <input type="number" id="year" value="2024">
+            
+            <label for="interest">Interest Rate (%):</label>
+            <input type="number" id="interest" step="0.1" value="5.5">
+            
+            <label for="region">Region:</label>
+            <select id="region">
+                <option>Sunbelt</option><option>Pacific Northwest</option><option>Rust Belt</option>
+                <option>New England</option><option>Mountain West</option>
+            </select>
+            
+            <label for="subtype">Sub-Type:</label>
+            <select id="subtype">
+                <option>Urban</option><option selected>Suburban</option><option>Rural</option>
+                <option>Historic District</option>
+            </select>
+            
+            <label for="style">Architectural Style:</label>
+            <select id="style">
+                <option>Modern</option><option>Ranch</option><option selected>Colonial</option>
+                <option>Craftsman</option><option>Victorian</option>
+            </select>
 
-// Run the main function when the page loads
-main();hand.jsmain.js
+            <div class="radio-group">
+                <p>Does it have a garage?</p>
+                <input type="radio" id="garage_yes" name="garage" value="1" checked><label for="garage_yes">Yes</label>
+                <input type="radio" id="garage_no" name="garage" value="0"><label for="garage_no">No</label>
+            </div>
+
+            <div class="radio-group">
+                <p>Does it have a pool?</p>
+                <input type="radio" id="pool_yes" name="pool" value="1"><label for="pool_yes">Yes</label>
+                <input type="radio" id="pool_no" name="pool" value="0" checked><label for="pool_no">No</label>
+            </div>
+            
+            <button id="predict-button">Predict Price</button>
+
+            <!-- The prediction result will be displayed here. -->
+            <div id="result"></div>
+        </main>
+    </div>
+
+    <!-- This section loads the Pyodide engine (Python for the web). -->
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.26.1/full/pyodide.js"></script>
+    <!-- And this loads our main JavaScript file, which contains the AI logic. -->
+    <script src="main.js"></script>
+</body>
+</html>
