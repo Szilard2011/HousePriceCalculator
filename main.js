@@ -33,12 +33,9 @@ predictButton.addEventListener('click', async () => {
 
     try {
         // Step 2: Send this data package over the internet to our API.
-        // We use the 'fetch' command, which is the standard way to talk to servers.
         const response = await fetch(API_URL, {
             method: "POST",
-            // We tell the server we're sending data in the JSON format.
             headers: { "Content-Type": "application/json" },
-            // We package our array of inputs into the specific format the Gradio API expects.
             body: JSON.stringify({
                 data: inputs
             })
@@ -46,15 +43,13 @@ predictButton.addEventListener('click', async () => {
 
         // Step 3: Wait for the AI's response and get the result.
         const result = await response.json();
-        
-        // The Gradio API sends back an object with a 'data' key, which contains our price.
         const predicted_price = result.data[0];
 
         // Step 4: Display the final prediction to the user!
         resultDiv.innerText = `Predicted Price: ${predicted_price}`;
 
     } catch (error) {
-        // If anything goes wrong (like the server is down), we'll show an error message.
+        // If anything goes wrong, we'll show an error message.
         console.error("Error connecting to the AI server:", error);
         resultDiv.innerText = '❌ Error: Could not connect to the AI. Please try again later.';
     }
