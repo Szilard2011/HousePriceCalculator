@@ -4,74 +4,36 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI House Price Predictor</title>
+    <!-- We link to our stylesheet for the surrounding page -->
     <link rel="stylesheet" href="style.css">
+    
+    <!-- This script tag loads the Gradio library needed to power the <gradio-app> component -->
+    <script
+        type="module"
+        src="https://gradio.s3-us-west-2.amazonaws.com/4.31.0/gradio.js"
+    ></script>
 </head>
 <body>
 
     <div class="container">
         <header>
             <h1>AI House Price Predictor</h1>
-            <p>Describe a property below, and our trained AI will estimate its market value.</p>
+            <p>The complete, interactive AI application is running live below, directly from the Hugging Face servers. Feel free to interact with it here!</p>
         </header>
 
-        <main id="calculator">
-            
-            <label for="sqft">Square Footage:</label>
-            <input type="number" id="sqft" value="2500">
-
-            <label for="bedrooms">Bedrooms:</label>
-            <input type="number" id="bedrooms" value="4">
-            
-            <label for="age">House Age (years):</label>
-            <input type="number" id="age" value="15">
-            
-            <label for="condition">Property Condition (1-10):</label>
-            <input type="range" id="condition" value="8" min="1" max="10" step="1" oninput="this.nextElementSibling.value = this.value">
-            <output>8</output>
-            
-            <label for="year">Year Sold:</label>
-            <input type="number" id="year" value="2024">
-            
-            <label for="interest">Interest Rate (%):</label>
-            <input type="number" id="interest" step="0.1" value="5.5">
-            
-            <label for="region">Region:</label>
-            <select id="region">
-                <option>Sunbelt</option><option>Pacific Northwest</option><option>Rust Belt</option>
-                <option>New England</option><option>Mountain West</option>
-            </select>
-            
-            <label for="subtype">Sub-Type:</label>
-            <select id="subtype">
-                <option>Urban</option><option selected>Suburban</option><option>Rural</option>
-                <option>Historic District</option>
-            </select>
-            
-            <label for="style">Architectural Style:</label>
-            <select id="style">
-                <option>Modern</option><option>Ranch</option><option selected>Colonial</option>
-                <option>Craftsman</option><option>Victorian</option>
-            </select>
-
-            <div class="radio-group">
-                <p>Does it have a garage?</p>
-                <input type="radio" id="garage_yes" name="garage" value="1" checked><label for="garage_yes">Yes</label>
-                <input type="radio" id="garage_no" name="garage" value="0"><label for="garage_no">No</label>
-            </div>
-
-            <div class="radio-group">
-                <p>Does it have a pool?</p>
-                <input type="radio" id="pool_yes" name="pool" value="1"><label for="pool_yes">Yes</label>
-                <input type="radio" id="pool_no" name="pool" value="0" checked><label for="pool_no">No</label>
-            </div>
-            
-            <button id="predict-button">Predict Price</button>
-
-            <div id="result"></div>
+        <main>
+            <!-- 
+                This is the Gradio Web Component.
+                It will automatically connect to your Hugging Face Space and build the
+                interactive interface right here in our page.
+            -->
+            <gradio-app src="https://szili2011-ai-house-price-predictor-api.hf.space"></gradio-app>
         </main>
+        
+        <footer>
+            <p>Model and application hosted on <a href="https://huggingface.co/spaces/szili2011/ai-house-price-predictor-api" target="_blank">Hugging Face Spaces</a>.</p>
+        </footer>
     </div>
-    
-    <!-- We only need to load our simple main.js script. No more Pyodide! -->
-    <script src="main.js"></script>
+
 </body>
 </html>
