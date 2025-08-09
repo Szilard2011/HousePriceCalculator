@@ -4,10 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI House Price Predictor</title>
-    <!-- We link to our stylesheet for the surrounding page -->
     <link rel="stylesheet" href="style.css">
     
-    <!-- This script tag loads the Gradio library needed to power the <gradio-app> component -->
+    <!-- This script loads the Gradio library -->
     <script
         type="module"
         src="https://gradio.s3-us-west-2.amazonaws.com/4.31.0/gradio.js"
@@ -23,11 +22,15 @@
 
         <main>
             <!-- 
-                This is the Gradio Web Component.
-                It will automatically connect to your Hugging Face Space and build the
-                interactive interface right here in our page.
+                THIS IS THE FIX.
+                We are adding theme="light" to the component. This tells Gradio
+                to use its beautiful, clean, light-colored theme which will match
+                our webpage perfectly.
             -->
-            <gradio-app src="https://szili2011-ai-house-price-predictor-api.hf.space"></gradio-app>
+            <gradio-app
+                src="https://szili2011-ai-house-price-predictor-api.hf.space"
+                theme="light"
+            ></gradio-app>
         </main>
         
         <footer>
