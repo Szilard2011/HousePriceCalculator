@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI House Price Predictor</title>
-    <!-- This links to our beautiful stylesheet -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -12,10 +11,9 @@
     <div class="container">
         <header>
             <h1>AI House Price Predictor</h1>
-            <p>Describe a property below, and our trained AI will estimate its market value. The AI brain is running live on Hugging Face!</p>
+            <p>Describe a property below, and our trained AI will estimate its market value.</p>
         </header>
 
-        <!-- The main calculator form -->
         <main id="calculator">
             
             <label for="sqft">Square Footage:</label>
@@ -29,7 +27,7 @@
             
             <label for="condition">Property Condition (1-10):</label>
             <input type="range" id="condition" value="8" min="1" max="10" step="1" oninput="this.nextElementSibling.value = this.value">
-            <output>8</output> <!-- Shows the current slider value -->
+            <output>8</output>
             
             <label for="year">Year Sold:</label>
             <input type="number" id="year" value="2024">
@@ -69,12 +67,11 @@
             
             <button id="predict-button">Predict Price</button>
 
-            <!-- The prediction result will be displayed here. -->
             <div id="result"></div>
         </main>
     </div>
-
-    <!-- This loads our lightweight JavaScript file that talks to the AI -->
+    
+    <!-- We only need to load our simple main.js script. No more Pyodide! -->
     <script src="main.js"></script>
 </body>
 </html>
