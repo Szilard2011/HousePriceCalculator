@@ -1,86 +1,108 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI House Price Predictor</title>
-    <!-- We are linking to our stylesheet. -->
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
+// main.js
 
-    <div class="container">
-        <header>
-            <h1>AI House Price Predictor</h1>
-            <p>Describe a property below, and our trained AI will estimate its market value based on millions of simulated data points.</p>
-        </header>
+// First, we get references to the important HTML elements we'll need to interact with.
+const loader = document.getElementById('loader');
+const calculator = document.getElementById('calculator');
+const predictButton = document.getElementById('predict-button');
+const resultDiv = document.getElementById('result');
 
-        <!-- This message shows while the AI model downloads from Hugging Face. -->
-        <div id="loader">
-            <p>🚀 Initializing AI Brain from Hugging Face... this may take a moment on your first visit.</p>
-        </div>
+// This is the main function that orchestrates everything.
+async function initializeAndRun() {
+    console.log("Starting the initialization process...");
 
-        <!-- The main calculator form, hidden until the AI is ready. -->
-        <main id="calculator" style="display:none;">
-            
-            <label for="sqft">Square Footage:</label>
-            <input type="number" id="sqft" value="2500">
+    // --- STEP 1: Load the Pyodide Engine and Python Packages ---
+    try {
+        let pyodide = await loadPyodide();
+        console.log("Pyodide engine loaded.");
+        await pyodide.loadPackage(["numpy", "pandas", "scikit-learn", "joblib"]);
+        console.log("Required Python packages loaded.");
 
-            <label for="bedrooms">Bedrooms:</label>
-            <input type="number" id="bedrooms" value="4">
-            
-            <label for="age">House Age (years):</label>
-            <input type="number" id="age" value="15">
-            
-            <label for="condition">Property Condition (1-10):</label>
-            <input type="number" id="condition" value="8" min="1" max="10">
-            
-            <label for="year">Year Sold:</label>
-            <input type="number" id="year" value="2024">
-            
-            <label for="interest">Interest Rate (%):</label>
-            <input type="number" id="interest" step="0.1" value="5.5">
-            
-            <label for="region">Region:</label>
-            <select id="region">
-                <option>Sunbelt</option><option>Pacific Northwest</option><option>Rust Belt</option>
-                <option>New England</option><option>Mountain West</option>
-            </select>
-            
-            <label for="subtype">Sub-Type:</label>
-            <select id="subtype">
-                <option>Urban</option><option selected>Suburban</option><option>Rural</option>
-                <option>Historic District</option>
-            </select>
-            
-            <label for="style">Architectural Style:</label>
-            <select id="style">
-                <option>Modern</option><option>Ranch</option><option selected>Colonial</option>
-                <option>Craftsman</option><option>Victorian</option>
-            </select>
+        // --- STEP 2: Load Our Trained AI Model from Hugging Face ---
+        const modelPromise = pyodide.runPythonAsync(`
+            from pyodide.http import pyfetch
+            import joblib
+            import io
 
-            <div class="radio-group">
-                <p>Does it have a garage?</p>
-                <input type="radio" id="garage_yes" name="garage" value="1" checked><label for="garage_yes">Yes</label>
-                <input type="radio" id="garage_no" name="garage" value="0"><label for="garage_no">No</label>
-            </div>
+            # These are the direct download URLs for YOUR model files hosted on Hugging Face.
+            model_url = "https://huggingface.co/szili2011/ai-house-price-predictor/resolve/main/housing_model.joblib"
+            columns_url = "https://huggingface.co/szili2011/ai-house-price-predictor/resolve/main/model_columns.joblib"
 
-            <div class="radio-group">
-                <p>Does it have a pool?</p>
-                <input type="radio" id="pool_yes" name="pool" value="1"><label for="pool_yes">Yes</label>
-                <input type="radio" id="pool_no" name="pool" value="0" checked><label for="pool_no">No</label>
-            </div>
+            # Fetch the model file from the Hugging Face URL.
+            print("Downloading AI model from Hugging Face...")
+            response = await pyfetch(model_url)
+            model_bytes = await response.bytes()
+            print("Model download complete. Loading...")
+            model = joblib.load(io.BytesIO(model_bytes))
+
+            # Fetch the columns file from its Hugging Face URL.
+            response_cols = await pyfetch(columns_url)
+            cols_bytes = await response_cols.bytes()
+            model_columns = joblib.load(io.BytesIO(cols_bytes))
             
-            <button id="predict-button">Predict Price</button>
+            # This makes the loaded 'model' and 'model_columns' available globally within Pyodide.
+            (model, model_columns)
+        `);
 
-            <!-- The prediction result will be displayed here. -->
-            <div id="result"></div>
-        </main>
-    </div>
+        // We wait until the model and columns are fully loaded before continuing.
+        const [model, model_columns] = await modelPromise;
+        console.log("AI Model and columns have been successfully loaded and are ready.");
+        
+        // --- STEP 3: Update the UI ---
+        // Now that the AI is ready, we hide the "loading" message and show the calculator form.
+        loader.style.display = 'none';
+        calculator.style.display = 'block';
 
-    <!-- This section loads the Pyodide engine (Python for the web). -->
-    <script src="https://cdn.jsdelivr.net/pyodide/v0.26.1/full/pyodide.js"></script>
-    <!-- And this loads our main JavaScript file, which contains the AI logic. -->
-    <script src="main.js"></script>
-</body>
-</html>
+        // --- STEP 4: Set up the Predict Button ---
+        predictButton.addEventListener('click', async () => {
+            // First, we collect all the current values from the form inputs on the webpage.
+            const inputs = {
+                SquareFootage: parseInt(document.getElementById('sqft').value),
+                Bedrooms: parseInt(document.getElementById('bedrooms').value),
+                HouseAge: parseInt(document.getElementById('age').value),
+                PropertyCondition: parseInt(document.getElementById('condition').value),
+                YearSold: parseInt(document.getElementById('year').value),
+                InterestRate: parseFloat(document.getElementById('interest').value),
+                Region: document.getElementById('region').value,
+                SubType: document.getElementById('subtype').value,
+                ArchitecturalStyle: document.getElementById('style').value,
+                HasGarage: !!parseInt(document.querySelector('input[name="garage"]:checked').value),
+                HasPool: !!parseInt(document.querySelector('input[name="pool"]:checked').value)
+            };
+
+            // We make the user's input data available to our Python code.
+            pyodide.globals.set("input_data_js", inputs);
+
+            // Now, we run a second Python script to process this new data and get a prediction.
+            const predicted_price = await pyodide.runPythonAsync(`
+                import pandas as pd
+                
+                # Get the house data that we just passed from JavaScript.
+                input_dict = input_data_js.to_py()
+                input_df = pd.DataFrame([input_dict])
+                
+                # Preprocess this new data in the *exact same way* we preprocessed the training data.
+                input_processed = pd.get_dummies(input_df)
+                
+                # Reindex to make sure it has the exact same columns in the same order as the training data.
+                final_input = input_processed.reindex(columns=model_columns, fill_value=0)
+                
+                # Use our loaded model to predict the price on the prepared data.
+                prediction = model.predict(final_input)[0]
+                prediction
+            `);
+
+            // --- STEP 5: Display the Result ---
+            // We take the price prediction from Python and display it beautifully on the page.
+            resultDiv.innerText = `Predicted Price: $${predicted_price.toLocaleString('en-US', {maximumFractionDigits: 0})}`;
+            resultDiv.style.display = 'block';
+        });
+
+    } catch (error) {
+        // If anything goes wrong during initialization, we show an error message.
+        console.error("Failed to initialize the AI application:", error);
+        loader.innerText = "❌ Error: Could not load the AI model. Please check the browser's console (F12) for details.";
+    }
+}
+
+// This line officially starts the whole process when the webpage loads.
+initializeAndRun();
