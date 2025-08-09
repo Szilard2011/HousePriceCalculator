@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI House Price Predictor</title>
-    <!-- We are linking to our new, beautiful stylesheet. -->
+    <!-- We are linking to our stylesheet. -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -15,9 +15,9 @@
             <p>Describe a property below, and our trained AI will estimate its market value based on millions of simulated data points.</p>
         </header>
 
-        <!-- This message will show only while the AI model is loading in the background. -->
+        <!-- This message shows while the AI model downloads from Hugging Face. -->
         <div id="loader">
-            <p>🚀 Initializing AI Brain... this may take a moment on your first visit.</p>
+            <p>🚀 Initializing AI Brain from Hugging Face... this may take a moment on your first visit.</p>
         </div>
 
         <!-- The main calculator form, hidden until the AI is ready. -->
