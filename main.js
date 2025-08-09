@@ -1,21 +1,18 @@
-// main.js - This script is the bridge between our webpage and our powerful AI on Hugging Face.
-// This version is more robust and handles API errors gracefully.
+// main.js - DIAGNOSTIC SCRIPT
+// The only purpose of this script is to capture and display the raw API response.
 
 const predictButton = document.getElementById('predict-button');
 const resultDiv = document.getElementById('result');
 
-// This is the confirmed, correct public address of your AI brain running in the cloud.
 const API_URL = "https://szili2011-ai-house-price-predictor-api.hf.space/run/predict";
 
-
-// Now, we tell the "Predict" button to listen for clicks.
 predictButton.addEventListener('click', async () => {
     
-    // Let the user know that the AI is thinking.
+    // Let the user know we're starting the test.
     resultDiv.style.display = 'block';
-    resultDiv.innerText = '🤖 Waking up the AI on Hugging Face... This might take a moment.';
+    resultDiv.innerText = '🔬 Running diagnostic test... Sending data to API...';
 
-    // Step 1: Gather all the information from the form fields.
+    // Gather the inputs as usual.
     const inputs = [
         parseInt(document.getElementById('sqft').value),
         parseInt(document.getElementById('bedrooms').value),
@@ -31,7 +28,7 @@ predictButton.addEventListener('click', async () => {
     ];
 
     try {
-        // Step 2: Send this data package over the internet to our API.
+        // Make the API call as before.
         const response = await fetch(API_URL, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -39,31 +36,23 @@ predictButton.addEventListener('click', async () => {
                 data: inputs
             })
         });
-        
-        // Check if the server responded successfully.
-        if (!response.ok) {
-            // If the server had an internal error, it won't be 'ok'.
-            throw new Error(`Server responded with status: ${response.status}`);
-        }
 
         const result = await response.json();
         
-        // --- THIS IS THE FIX ---
-        // Before we use the result, we MUST check if it has the 'data' key we expect.
-        if (result && result.data && result.data[0]) {
-            // If everything looks good, get the prediction.
-            const predicted_price = result.data[0];
-            // And display it to the user.
-            resultDiv.innerText = `Predicted Price: ${predicted_price}`;
-        } else {
-            // If the server sent back a weird response, we raise an error.
-            console.error("Unexpected API response:", result);
-            throw new Error("The AI server gave an unexpected response. It might be waking up.");
-        }
+        // --- THIS IS THE BLACK BOX RECORDER ---
+        // We are not assuming anything. We are just printing what we received.
+        console.log("--- RAW API RESPONSE RECEIVED ---");
+        console.log("The object below is the exact data sent back by the Hugging Face server:");
+        console.log(result);
+        console.log("---------------------------------");
+        
+        // Now we tell the user on the webpage to check the console.
+        resultDiv.innerText = "✅ Test Complete. Please open the Developer Console (F12) and copy the 'RAW API RESPONSE' object.";
+
 
     } catch (error) {
-        // This 'catch' block will now handle all types of errors gracefully.
-        console.error("Error connecting to or processing response from the AI server:", error);
-        resultDiv.innerText = '❌ An error occurred. The AI server might be waking up or busy. Please try again in 30 seconds.';
+        // If the connection itself fails, we'll still see it.
+        console.error("Error during the fetch operation:", error);
+        resultDiv.innerText = '❌ Test Failed. Could not connect to the server. Check console for details.';
     }
 });
